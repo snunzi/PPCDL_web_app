@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<div id="main" class="container">
+    <h2>Samples</h2>
+    <table class="table table-hover">
+      <thread>
+      <tr>
+        <th>Sample</th>
+        <th>Date</th>
+        <th>Assembly</th>
+       </tr>
+       </thread>
+      {% for sample in samples %}
+	    <tr>
+        <td>{{ sample.sample_id }}</td>
+        <td>{{ sample.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td><a href="{{ url_for('main.assembly_file', filename=sample.assemblies[0].assembly_filename) }} ">{{ sample.sample_id }}.fasta</a><td>
+        <!--<td>{{ sample.assemblies[0].body }}</td>-->
+		</tr>
+      {% endfor %}
+    </table>
+</div>
+
+{% endblock %}
