@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block app_content %}
+<h1>Create a Run</h1>
+<div class="row">
+      <div class="col-md-4">
+  <form method="POST" action="" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    {{ wtf.form_errors(form, hiddens="only") }}
+
+    {{ wtf.form_field(form.run_id) }}
+    {{ wtf.form_field(form.seq_platform) }}
+    {{ wtf.form_field(form.PE_SE) }}
+    {{ form.extension.label }}</br>
+    {{ form.extension(onchange="enterExt()") }}
+    <div id="extension_user" style="display: none;">
+      {{ form.extension_user.label }}</br>
+      {{ form.extension_user }}
+    </div>
+    {{ wtf.form_field(form.Description) }}
+    {{ wtf.form_field(form.reads) }}
+    {{ wtf.form_field(form.submit) }}
+  </form>
+
+  <script>
+  function enterExt() {
+    let box_value = document.getElementById("extension").value;
+    if (box_value === "No") {
+      document.getElementById("extension_user").style.display = "block"
+    } else {
+      document.getElementById("extension_user").style.display = "none"
+    }
+  }
+  enterExt()
+  </script>
+</div>
+{% endblock %}

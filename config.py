@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
 
-UPLOAD_FOLDER = '/home/sonunziata/bioinformatic_analyses/HLB_web_app/files/data'
+UPLOAD_FOLDER = '/home/sonunziata/bioinformatic_analyses/web_gui_FY22/PPCDL_web_app/files/data'
 CONFIG_FOLDER = '/home/sonunziata/bioinformatic_analyses/HLB_web_app/files'
 PIPELINE_FOLDER =  '/home/sonunziata/bioinformatic_analyses/HLB_web_app/files/pipelines'
 RESULTS_FOLDER = '/home/sonunziata/bioinformatic_analyses/HLB_web_app/files/ref_annotation'

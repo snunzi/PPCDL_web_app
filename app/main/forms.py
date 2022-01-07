@@ -1,10 +1,28 @@
 from flask import request
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, SelectField
-from wtforms.validators import ValidationError, DataRequired, Length
+from wtforms import StringField, SubmitField, TextAreaField, SelectField, BooleanField, TextField, MultipleFileField
+from wtforms.validators import ValidationError, DataRequired, Length, Optional
 from flask_wtf.file import FileField, FileRequired
-from app.models import User, Sample
+from app.models import User, Sample, Run
 from werkzeug.utils import secure_filename
+
+class CreateRun(FlaskForm):
+    seq_platforms = [('Illumina', 'Illumina'), ('MinION', 'MinION')]
+    ends = [('PE', 'PE'), ('SE', 'SE')]
+    ext_ill = [('Yes','Yes'), ('No', 'No')]
+    run_id = TextAreaField(('Run ID (For Illumina, use Illumina folder name i.g. YYMMDD_InstrumentID_RunID_FlowcellID)'), validators=[DataRequired()])
+    seq_platform = SelectField('Platform', choices=seq_platforms, validators=[DataRequired()])
+    PE_SE = SelectField('Sequencing Reads', choices=ends, validators=[DataRequired()])
+    extension = SelectField('Is extension default Illumina format (_L00[1,2,3,4]_R[1,2]_001.fastq.gz)?', choices=ext_ill)
+    extension_user = TextAreaField(('Enter the extension (i.g. .fastq.gz)'), validators=[Optional()])
+    Description = TextAreaField(('Enter a short desciption of the run (i.g. Non-diagnostic Virus)'), validators=[DataRequired()])
+    reads = FileField(validators=[FileRequired()])
+    submit = SubmitField(('Submit'))
+
+    def validate_run_id(self, run_id):
+        run = Run.query.filter_by(run_id=run_id.data).first()
+        if run is not None:
+            raise ValidationError('That run id already exists in the database, please use a different id.')
 
 class CreateSample(FlaskForm):
     seq_kits = [('TruSeq', 'TruSeq'), ('Nextera', 'Nextera'), ('SureSelect','SureSelect')]
@@ -19,7 +37,7 @@ class CreateSample(FlaskForm):
     PE_SE = SelectField('Sequencing Reads', choices=ends, validators=[DataRequired()])
     sample_read1 = FileField(validators=[FileRequired()])
     submit = SubmitField(('Submit'))
-    
+
     def validate_sample_id(self, sample_id):
         sample = Sample.query.filter_by(sample_id=sample_id.data).first()
         if sample is not None:
@@ -34,4 +52,3 @@ class ConfigForm(FlaskForm):
     ref_proteomes = [('A4', 'A4'), ('psy62', 'psy62'), ('JXGC','JXGC'), ('Ishi-1','Ishi-1'), ('gxpsy','gxpsy')]
     ref_proteome = SelectField('Reference Genome', choices=ref_proteomes, validators=[DataRequired()])
     submit = SubmitField(('Submit'))
-

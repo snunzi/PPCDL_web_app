@@ -2,9 +2,9 @@ import os
 from flask import render_template, flash, redirect, url_for, request, send_from_directory, current_app, send_from_directory
 from flask_login import current_user, login_required
 from app import db
-from app.models import User, Sample
+from app.models import User, Sample, Run
 from app.main import bp
-from app.main.forms import CreateSample, AssemblyForm, ConfigForm
+from app.main.forms import CreateSample, AssemblyForm, ConfigForm, CreateRun
 from werkzeug.utils import secure_filename
 from Bio import SeqIO
 import snakemake
@@ -23,6 +23,26 @@ def index():
 def user(username):
 	user = User.query.filter_by(username=username).first_or_404()
 	return render_template('user.html', samples=Sample.query.order_by(Sample.timestamp.desc()).all())
+
+
+@bp.route('/user/<username>/CreateRun', methods=['GET', 'POST'])
+@login_required
+def run(username):
+	form = CreateRun()
+	if form.validate_on_submit():
+		# all_reads = request.files.getlist(form.reads.name)
+		# for seq in all_reads:
+		# 	f = seq.data
+		# 	filename = secure_filename(f.filename)
+		# 	f.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+
+		run = Run(run_id=form.run_id.data, seq_platform=form.seq_platform.data, PE_SE=form.PE_SE.data, extension=form.extension.data, extension_user=form.extension_user.data, author=current_user)
+
+		db.session.add(run)
+		db.session.commit()
+		flash('Your run is now uploaded!')
+		return redirect(url_for('main.index'))
+	return render_template("run.html", user=user, form=form)
 
 
 @bp.route('/user/<username>/CreateSample', methods=['GET', 'POST'])

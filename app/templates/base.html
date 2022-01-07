@@ -26,6 +26,7 @@
                     <li><a href="{{ url_for('auth.login') }}">{{ ('Login') }}</a></li>
                     {% else %}
                     <li><a href="{{ url_for('main.user', username=current_user.username) }}">{{ ('Profile') }}</a></li>
+                    <li><a href="{{ url_for('main.run', username=current_user.username) }}">{{ ('Run') }}</a></li>
                     <li><a href="{{ url_for('main.sample', username=current_user.username) }}">{{ ('Sample') }}</a></li>
                     <li><a href="{{ url_for('main.assemble_sample', username=current_user.username) }}">{{ ('Assemble') }}</a></li>
                     <li><a href="{{ url_for('auth.logout') }}">{{ ('Logout') }}</a></li>

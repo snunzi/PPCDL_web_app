@@ -18,6 +18,7 @@ class User(UserMixin, db.Model):
 	email = db.Column(db.String(120), index=True, unique=True)
 	password_hash = db.Column(db.String(128))
 	assemblies = db.relationship('Assembly', backref='author', lazy='dynamic')
+	runs = db.relationship('Run', backref='author', lazy='dynamic')
 	samples = db.relationship('Sample', backref='author', lazy='dynamic')
 	notifications = db.relationship('Notification', backref='user', lazy='dynamic')
 	tasks = db.relationship('Task', backref='user', lazy='dynamic')
@@ -58,6 +59,19 @@ class Notification(db.Model):
 
 		def get_data(self):
 			return json.loads(str(self.payload_json))
+
+class Run(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	run_id = db.Column(db.String(140), index=True, unique=True)
+	seq_platform = db.Column(db.String(140))
+	PE_SE = db.Column(db.String(140))
+	extension = db.Column(db.String(140))
+	extension_user = db.Column(db.String(140))
+	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+	def __repr__(self):
+		return '<Run {}>'.format(self.run_id)
 
 class Sample(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
