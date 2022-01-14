@@ -17,9 +17,7 @@ class User(UserMixin, db.Model):
 	username = db.Column(db.String(64), index=True, unique=True)
 	email = db.Column(db.String(120), index=True, unique=True)
 	password_hash = db.Column(db.String(128))
-	assemblies = db.relationship('Assembly', backref='author', lazy='dynamic')
 	runs = db.relationship('Run', backref='author', lazy='dynamic')
-	samples = db.relationship('Sample', backref='author', lazy='dynamic')
 	notifications = db.relationship('Notification', backref='user', lazy='dynamic')
 	tasks = db.relationship('Task', backref='user', lazy='dynamic')
 
@@ -66,8 +64,11 @@ class Run(db.Model):
 	seq_platform = db.Column(db.String(140))
 	PE_SE = db.Column(db.String(140))
 	extension = db.Column(db.String(140))
-	extension_user = db.Column(db.String(140))
+	extension_R1_user = db.Column(db.String(140))
+	extension_R2_user = db.Column(db.String(140))
+	description = db.Column(db.String(140))
 	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+	samples = db.relationship('Sample', backref='run_name', lazy='dynamic')
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 	def __repr__(self):
@@ -75,29 +76,15 @@ class Run(db.Model):
 
 class Sample(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	sample_id = db.Column(db.String(140), index=True, unique=True)
-	insert_size = db.Column(db.String(140))
-	seq_kit = db.Column(db.String(140))
-	seq_platform = db.Column(db.String(140))
-	seq_location = db.Column(db.String(140))
-	PE_SE = db.Column(db.String(140))
+	sample_id = db.Column(db.String(140), index=True)
+	R1_path = db.Column(db.String(140))
+	R2_path = db.Column(db.String(140))
+	host = db.Column(db.String(140))
 	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-	assemblies = db.relationship('Assembly', backref='sample')
+	run_id = db.Column(db.Integer, db.ForeignKey('run.id'))
 
 	def __repr__(self):
 		return '<Sample {}>'.format(self.sample_id)
-
-class Assembly(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	assembly_filename = db.Column(db.String, default=None, nullable=True)
-	assembly_url = db.Column(db.String, default=None, nullable=True)
-	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-	sample_id = db.Column(db.Integer, db.ForeignKey('sample.id'))
-
-	def __repr__(self):
-		return '<Assembly {}>'.format(self.assembly_filename)
 
 class Task(db.Model):
 	id = db.Column(db.String(36), primary_key=True)

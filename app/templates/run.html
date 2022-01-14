@@ -15,9 +15,13 @@
     {{ wtf.form_field(form.PE_SE) }}
     {{ form.extension.label }}</br>
     {{ form.extension(onchange="enterExt()") }}
-    <div id="extension_user" style="display: none;">
-      {{ form.extension_user.label }}</br>
-      {{ form.extension_user }}
+    <div id="extension_R1_user" style="display: none;">
+      {{ form.extension_R1_user.label }}</br>
+      {{ form.extension_R1_user }}
+    </div>
+    <div id="extension_R2_user" style="display: none;">
+      {{ form.extension_R2_user.label }}</br>
+      {{ form.extension_R2_user }}
     </div>
     {{ wtf.form_field(form.Description) }}
     {{ wtf.form_field(form.reads) }}
@@ -28,9 +32,11 @@
   function enterExt() {
     let box_value = document.getElementById("extension").value;
     if (box_value === "No") {
-      document.getElementById("extension_user").style.display = "block"
+      document.getElementById("extension_R1_user").style.display = "block";
+      document.getElementById("extension_R2_user").style.display = "block"
     } else {
-      document.getElementById("extension_user").style.display = "none"
+      document.getElementById("extension_R1_user").style.display = "none";
+      document.getElementById("extension_R2_user").style.display = "none"
     }
   }
   enterExt()

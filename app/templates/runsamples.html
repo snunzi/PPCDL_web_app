@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<div id="main" class="container">
+    <h2>Samples</h2>
+    <table class="table table-hover">
+      <thread>
+      <tr>
+        <th>Sample</th>
+        <th>Host</th>
+        <th>Analysis</th>
+        <th>Edit</th>
+       </tr>
+       </thread>
+      {% for sample in samples %}
+	    <tr>
+        <td>{{ sample.sample_id }}</td>
+        <td>{{ sample.host }}</td>
+        <td><{{ Placeholder }}</td>
+        <td><{{ Placeholder }}</td>
+		</tr>
+      {% endfor %}
+    </table>
+</div>
+
+{% endblock %}

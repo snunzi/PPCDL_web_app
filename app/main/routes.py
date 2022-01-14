@@ -4,12 +4,13 @@ from flask_login import current_user, login_required
 from app import db
 from app.models import User, Sample, Run
 from app.main import bp
-from app.main.forms import CreateSample, AssemblyForm, ConfigForm, CreateRun
+from app.main.forms import AssemblyForm, ConfigForm, CreateRun
 from werkzeug.utils import secure_filename
 from Bio import SeqIO
 import snakemake
 import pathlib
 import fileinput
+import sys
 
 
 @bp.route('/')
@@ -30,20 +31,46 @@ def user(username):
 def run(username):
 	form = CreateRun()
 	if form.validate_on_submit():
-		# all_reads = request.files.getlist(form.reads.name)
-		# for seq in all_reads:
-		# 	f = seq.data
-		# 	filename = secure_filename(f.filename)
-		# 	f.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+		path = os.path.join(current_app.config['UPLOAD_FOLDER'],form.run_id.data,'data')
+		os.makedirs(path)
+		files_filenames = []
+		for f in form.reads.data:
+			f_filename = secure_filename(f.filename)
+			f.save(os.path.join(path, f_filename))
+			files_filenames.append(f_filename)
+		samples = list(set([sub.replace(form.extension_R1_user.data, "").replace(form.extension_R2_user.data, "")
+			for sub in files_filenames]))
 
-		run = Run(run_id=form.run_id.data, seq_platform=form.seq_platform.data, PE_SE=form.PE_SE.data, extension=form.extension.data, extension_user=form.extension_user.data, author=current_user)
+
+		run = Run(run_id=form.run_id.data, seq_platform=form.seq_platform.data, PE_SE=form.PE_SE.data, extension=form.extension.data, extension_R1_user=form.extension_R1_user.data, extension_R2_user=form.extension_R2_user.data, description=form.Description.data, author=current_user)
 
 		db.session.add(run)
 		db.session.commit()
+
+		for s in samples:
+			R1 = os.path.join(path, s + form.extension_R1_user.data)
+			R2 = os.path.join(path, s + form.extension_R2_user.data)
+			samp = Sample(sample_id=s, R1_path=R1, R2_path=R2, run_name=run)
+			db.session.add(samp)
+			db.session.commit()
+
 		flash('Your run is now uploaded!')
 		return redirect(url_for('main.index'))
 	return render_template("run.html", user=user, form=form)
 
+@bp.route('/user/<username>/BrowseRuns')
+@login_required
+def browseruns(username):
+	user = User.query.filter_by(username=username).first_or_404()
+	return render_template('browseruns.html', runs=Run.query.order_by(Run.timestamp.desc()).all())
+
+@bp.route('/user/<username>/RunSamples/<runname>')
+@login_required
+def runsamples(username,runname):
+	user = User.query.filter_by(username=username).first_or_404()
+	run = Run.query.filter_by(run_id=runname).first_or_404()
+	samples = Sample.query.filter_by(run_id=run.id).all()
+	return render_template('runsamples.html', user=user, runname=runname, samples=samples)
 
 @bp.route('/user/<username>/CreateSample', methods=['GET', 'POST'])
 @login_required
