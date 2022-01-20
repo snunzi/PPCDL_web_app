@@ -19,8 +19,6 @@ login.login_message = ('Please log in to access this page.')
 bootstrap = Bootstrap()
 sess = Session()
 
-
-
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)

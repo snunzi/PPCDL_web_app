@@ -1,29 +1,49 @@
 {% extends "base.html" %}
 
+
 {% block app_content %}
 <div id="main" class="container">
-
     <h2>Runs</h2>
-
     <p></p><p>
     <a href="{{ url_for('main.run', username=current_user.username) }}"> Add New Run </a>
 
-    <table class="table table-hover">
-      <thread>
-      <tr>
-        <th>Run</th>
-        <th>Date</th>
-        <th>Samples</th>
-       </tr>
-       </thread>
-      {% for run in runs %}
-	    <tr>
-        <td>{{ run.run_id }}</td>
-        <td>{{ run.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-        <td><a href="{{ url_for('main.runsamples', username=current_user.username, runname=run.run_id) }} ">Samples</a><td>
-		</tr>
-      {% endfor %}
+    <table id="data" class="table table-striped">
+      <thead>
+        <tr>
+          <th>Run</th>
+          <th>Date</th>
+          <th>Samples</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
     </table>
 </div>
 
+{% endblock %}
+
+
+{% block scripts %}
+  {{super()}}
+  <script>
+    $(document).ready(function () {
+      $('#data').DataTable({
+        ajax: "{{ url_for('main.rundata') }}",
+        serverSide: true,
+        columns: [
+          {data: 'run_id'},
+          {data: 'timestamp'},
+          {data: 'run_id', orderable: false}
+        ],
+        "columnDefs": [ {
+          "targets": -1,
+          "data": data[0],
+          "render": function (data, type, row, meta) {
+            let url = "{{ url_for('main.runsamples', username=current_user.username, runname='DATA') }}".replace('DATA', data);
+            return '<a href="' + url + '">'+'View'+'</a>';
+          }
+        } ]
+      });
+    });
+  </script>
 {% endblock %}

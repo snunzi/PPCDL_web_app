@@ -26,7 +26,7 @@
                     <li><a href="{{ url_for('auth.login') }}">{{ ('Login') }}</a></li>
                     {% else %}
                     <li><a href="{{ url_for('main.user', username=current_user.username) }}">{{ ('Profile') }}</a></li>
-                    <li><a href="{{ url_for('main.browseruns', username=current_user.username) }}">{{ ('Run') }}</a></li>
+                    <li><a href="{{ url_for('main.browseruns', username=current_user.username) }}">{{ ('Runs') }}</a></li>
                     <li><a href="{{ url_for('main.sample', username=current_user.username) }}">{{ ('Sample') }}</a></li>
                     <li><a href="{{ url_for('main.assemble_sample', username=current_user.username) }}">{{ ('Assemble') }}</a></li>
                     <li><a href="{{ url_for('auth.logout') }}">{{ ('Logout') }}</a></li>
@@ -36,8 +36,6 @@
         </div>
     </nav>
 {% endblock %}
-
-
 
 {% block content %}
     <div class="container">
@@ -66,4 +64,15 @@
         {# application content needs to be provided in the app_content block #}
         {% block app_content %}{% endblock %}
     </div>
+{% endblock %}
+
+{% block styles %}
+  {{super()}}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename ='DataTables-1.11.3/css/dataTables.bootstrap.css') }}"/>
+{% endblock %}
+
+{% block scripts %}
+  {{super()}}
+  <script type="text/javascript" src="{{ url_for('static', filename='DataTables-1.11.3/js/jquery.dataTables.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='DataTables-1.11.3/js/dataTables.bootstrap.js') }}"></script>
 {% endblock %}

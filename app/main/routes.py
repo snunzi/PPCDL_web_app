@@ -62,7 +62,52 @@ def run(username):
 @login_required
 def browseruns(username):
 	user = User.query.filter_by(username=username).first_or_404()
-	return render_template('browseruns.html', runs=Run.query.order_by(Run.timestamp.desc()).all())
+	return render_template('browseruns.html')
+
+@bp.route('/user/rundata')
+@login_required
+def rundata():
+	query = Run.query
+
+	# search filter
+	search = request.args.get('search[value]')
+	if search:
+		query = query.filter(db.or_(
+			Run.run_id.like(f'%{search}%')
+	))
+	total_filtered = query.count()
+
+	# sorting
+	order = []
+	i = 0
+	while True:
+		col_index = request.args.get(f'order[{i}][column]')
+		if col_index is None:
+			break
+		col_name = request.args.get(f'columns[{col_index}][data]')
+		if col_name not in ['run_id', 'timestamp']:
+			col_name = 'name'
+		descending = request.args.get(f'order[{i}][dir]') == 'desc'
+		col = getattr(Run, col_name)
+		if descending:
+			col = col.desc()
+		order.append(col)
+		i += 1
+	if order:
+		query = query.order_by(*order)
+
+	# pagination
+	start = request.args.get('start', type=int)
+	length = request.args.get('length', type=int)
+	query = query.offset(start).limit(length)
+
+	# response
+	return {
+		'data': [run.to_dict() for run in query],
+		'recordsFiltered': total_filtered,
+		'recordsTotal': Run.query.count(),
+		'draw': request.args.get('draw', type=int),
+	}
 
 @bp.route('/user/<username>/RunSamples/<runname>')
 @login_required

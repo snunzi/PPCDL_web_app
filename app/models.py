@@ -74,6 +74,14 @@ class Run(db.Model):
 	def __repr__(self):
 		return '<Run {}>'.format(self.run_id)
 
+	def to_dict(self):
+		return {
+			'run_id': self.run_id,
+			'seq_platform': self.seq_platform,
+			'description': self.description,
+			'timestamp': str(self.timestamp),
+		}
+
 class Sample(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	sample_id = db.Column(db.String(140), index=True)
