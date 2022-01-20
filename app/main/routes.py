@@ -1,5 +1,5 @@
 import os
-from flask import render_template, flash, redirect, url_for, request, send_from_directory, current_app, send_from_directory
+from flask import render_template, flash, redirect, url_for, request, send_from_directory, current_app, send_from_directory, json
 from flask_login import current_user, login_required
 from app import db
 from app.models import User, Sample, Run
@@ -116,6 +116,20 @@ def runsamples(username,runname):
 	run = Run.query.filter_by(run_id=runname).first_or_404()
 	samples = Sample.query.filter_by(run_id=run.id).all()
 	return render_template('runsamples.html', user=user, runname=runname, samples=samples)
+
+@bp.route('/user/<username>/UpdateSamples', methods=['POST'])
+@login_required
+def updatesample(username):
+		pk = request.form['pk']
+		name = request.form['name']
+		value = request.form['value']
+		sample = db.session.query(Sample).filter_by(id=pk).first()
+		if name == 'host':
+			setattr(sample, 'host', value)
+		elif name == 'email':
+			cur.execute("UPDATE employee SET email = %s WHERE id = %s ", (value, pk))
+		db.session.commit()
+		return json.dumps({'status':'OK'})
 
 @bp.route('/user/<username>/CreateSample', methods=['GET', 'POST'])
 @login_required

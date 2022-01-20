@@ -16,7 +16,7 @@
         {% for sample in samples %}
           <tr>
             <td>{{ sample.sample_id }}</td>
-            <td>{{ sample.host }}</td>
+            <td data-name="host" class="host" data-type="text" data-pk="{{sample.id}}">{{sample.host}}</td>
             <td><{{ Placeholder }}</td>
             <td><</td>
           </tr>
@@ -31,13 +31,26 @@
   {{super()}}
     <script>
     $(document).ready(function() {
-      $('#data').DataTable({
+      var dataTable = $('#data').DataTable({
          columns: [
            null,
            null,
            {orderable: false},
            {orderable: false}],
          });
+      $('#data').editable({
+        container:'body',
+        selector:'td.host',
+        url:"{{ url_for('main.updatesample', username=current_user.username) }}",
+        title:'Host',
+        type:'POST',
+        validate:function(value){
+            if($.trim(value) == '')
+            {
+                return 'This field is required';
+            }
+        }
+      });
     });
     </script>
 {% endblock %}
