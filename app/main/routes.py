@@ -50,7 +50,7 @@ def run(username):
 		for s in samples:
 			R1 = os.path.join(path, s + form.extension_R1_user.data)
 			R2 = os.path.join(path, s + form.extension_R2_user.data)
-			samp = Sample(sample_id=s, R1_path=R1, R2_path=R2, run_name=run)
+			samp = Sample(sample_id=s, R1_path=R1, R2_path=R2, run_name=run, host='arabidopsis')
 			db.session.add(samp)
 			db.session.commit()
 
@@ -129,7 +129,7 @@ def sample(username):
 		#pathlib.Path(current_app.config['UPLOAD_FOLDER'], sample_id).mkdir(exist_ok=True)
 		f.save(os.path.join(current_app.config['UPLOAD_FOLDER'], sample_id))
 
-		sample = Sample(sample_id=form.sample_id.data, insert_size=form.insert_size.data, seq_kit=form.seq_kit.data, seq_platform=form.seq_platform.data, seq_location=form.seq_location.data, PE_SE=form.PE_SE.data, author=current_user)
+		sample = Sample(sample_id=form.sample_id.data, insert_size=form.insert_size.data,  seq_kit=form.seq_kit.data, seq_platform=form.seq_platform.data, seq_location=form.seq_location.data, PE_SE=form.PE_SE.data, author=current_user)
 
 		db.session.add(sample)
 		db.session.commit()
