@@ -16,7 +16,7 @@
         {% for sample in samples %}
           <tr>
             <td>{{ sample.sample_id }}</td>
-            <td data-name="host" class="host" data-type="text" data-pk="{{sample.id}}">{{sample.host}}</td>
+            <td data-name="host" class="host" data-type="select" data-pk="{{sample.id}}">{{sample.host}}</td>
             <td><{{ Placeholder }}</td>
             <td><</td>
           </tr>
@@ -34,16 +34,21 @@
       var dataTable = $('#data').DataTable({
          columns: [
            null,
-           null,
+           { className: "edit_cell" },
            {orderable: false},
            {orderable: false}],
          });
+      $.fn.editable.defaults.mode = 'inline';
       $('#data').editable({
         container:'body',
         selector:'td.host',
         url:"{{ url_for('main.updatesample', username=current_user.username) }}",
         title:'Host',
         type:'POST',
+        source: [
+          {value: 'tomato', text: 'tomato'},
+          {value: 'citrus', text: 'citrus'},
+          {value: 'arabidopsis', text: 'arabidopsis'}],
         validate:function(value){
             if($.trim(value) == '')
             {

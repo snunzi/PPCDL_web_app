@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<div id="main" class="container">
+    <h2>Choose sample to assemble</h2>
+    <table class="table table-hover">
+      <thread>
+      <tr>
+        <th>Sample</th>
+        <th>Date</th>
+       </tr>
+       </thread>
+      {% for sample in samples %}
+        <tr>
+			<td>
+			<form method="POST">
+				{# Assuming sample.sample_id is a unique value #}
+				<input type="checkbox" name="chkbox" value="{{sample.sample_id}}"> {{sample.sample_id}}
+			</td>
+        <td>{{ sample.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+		</tr>
+      {% endfor %}
+    </table>
+	<button type="submit">Submit</button>
+</div>
+
+{% endblock %}
+
