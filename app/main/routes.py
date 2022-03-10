@@ -4,13 +4,15 @@ from flask_login import current_user, login_required
 from app import db
 from app.models import User, Sample, Run
 from app.main import bp
-from app.main.forms import AssemblyForm, ConfigForm, CreateRun
+from app.main.forms import AssemblyForm, ConfigForm, CreateRun, PipelineForm, VirusConfigForm
 from werkzeug.utils import secure_filename
 from Bio import SeqIO
 import snakemake
 import pathlib
 import fileinput
 import sys
+from threading import Thread
+from app.tasks import snake_hlb
 
 
 @bp.route('/')
@@ -58,10 +60,22 @@ def run(username):
 		return redirect(url_for('main.index'))
 	return render_template("run.html", user=user, form=form)
 
-@bp.route('/user/<username>/BrowseRuns')
+@bp.route('/user/<username>/BrowseRuns', methods=['GET', 'POST'])
 @login_required
 def browseruns(username):
 	user = User.query.filter_by(username=username).first_or_404()
+	if request.method == 'POST':
+		run_list = request.form.getlist('chkbox')
+		run = run_list[0]
+		analy_run = Run.query.filter_by(id=run).first()
+		sample_ids = Sample.query.filter_by(run_id=analy_run.id).all()
+		#path = os.path.join(current_app.config['UPLOAD_FOLDER'],form.run_id.data,'data')
+		with open(os.path.join(current_app.config['CONFIG_FOLDER'], "samples.tsv"), 'w') as filehandle:
+			filehandle.write("sample\n")
+			for listitem in sample_ids:
+				filehandle.write('%s\n' % listitem.sample_id)
+				#print("This is the file " + listitem, file=sys.stderr)
+		return redirect(url_for('main.pipeline', username=current_user.username, run=run))
 	return render_template('browseruns.html')
 
 @bp.route('/user/rundata')
@@ -87,7 +101,7 @@ def rundata():
 			break
 		col_name = request.args.get(f'columns[{col_index}][data]')
 		if col_name not in ['run_id', 'timestamp']:
-			col_name = 'name'
+			col_name = 'run_id'
 		descending = request.args.get(f'order[{i}][dir]') == 'desc'
 		col = getattr(Run, col_name)
 		if descending:
@@ -132,45 +146,56 @@ def updatesample(username):
 		db.session.commit()
 		return json.dumps({'status':'OK'})
 
-@bp.route('/user/<username>/Analyze', methods = ['GET', 'POST'])
-@login_required
-def analyze(username):
-	if request.method == 'POST':
-		run_list = request.form.getlist('chkbox')
-		with open(os.path.join(current_app.config['CONFIG_FOLDER'], "samples.tsv"), 'w') as filehandle:
-			filehandle.write("sample\n")
-			for listitem in sample_list:
-				filehandle.write('%s\n' % listitem)
-		print(request.form.getlist('chkbox'))
-		return redirect(url_for('main.config', username=current_user.username))
-	return render_template("analyze.html", samples=Sample.query.order_by(Sample.timestamp.desc()).all())
 
-@bp.route('/user/<username>/Config', methods = ['GET', 'POST'])
+@bp.route('/user/<username>/Pipeline/<run>', methods = ['GET', 'POST'])
 @login_required
-def config(username):
-	form = ConfigForm()
-	config_file = os.path.join(current_app.config['CONFIG_FOLDER'], "config.yaml")
+def pipeline(username, run):
+	form = PipelineForm()
+	if form.validate_on_submit():
+		return redirect(url_for('main.viruspipe', username=current_user.username, run=run))
+	return render_template("pipeline.html", user=user, form=form, run=run)
+
+
+@bp.route('/user/<username>/VirusPipe/<run>', methods = ['GET', 'POST'])
+@login_required
+def viruspipe(username, run):
+	form = VirusConfigForm()
 	if form.validate_on_submit():
 		if current_user.get_task_in_progress('example'):
-			flash(('An assembly is already in progress, please wait'))
+			flash(('An analysis is already in progress, please wait'))
 		else:
+			#Get the Run
+			query = Run.query.filter_by(id=run).first()
+			run_dict = query.to_dict()
+			path = os.path.join(current_app.config['UPLOAD_FOLDER'],run_dict['run_id'])
+
+			#Generate Sample file
+			samples = Sample.query.filter_by(run_id=run).all()
+			with open(os.path.join(path, "samples.tsv"), 'w') as sample_file:
+				print("sample\thost", file=sample_file)
+				for sample in samples:
+					sample_dict = sample.to_dict()
+					print(sample_dict['sample_id'] + "\t" + sample_dict['host'], file=sample_file)
+
+			#Generate config file
 			config_dict = request.form.to_dict()
-			with open(os.path.join(current_app.config['CONFIG_FOLDER'], "config.yaml"), 'w') as config_file:
-				for line in fileinput.input(os.path.join(current_app.config['CONFIG_FOLDER'], "pipelines/test/config.yaml"), inplace=False):
+			config_dict.update(run_dict)
+			del config_dict['id']
+			del config_dict['description']
+			with open(os.path.join(path, "config.yaml"), 'w') as config_file:
+				for line in fileinput.input(os.path.join(current_app.config['CONFIG_FOLDER'], "pipelines/virus/config.yaml"), inplace=False):
 					line = line.rstrip()
 					if not line:
 						continue
 					for f_key, f_value in config_dict.items():
 						if f_key in line:
-							line = line.replace(f_key, f_value)
+							line = line.replace(f_key, str(f_value))
 					print(line, file = config_file)
-			current_user.launch_task('example', ('Creating your assembly...'))
-			db.session.commit()
-		return redirect(url_for('main.index'))
-	return render_template("config.html", user=user, form=form)
-
-@bp.route('/user/assemblies/<path:filename>')
-@login_required
-def assembly_file(filename):
-    return send_from_directory(current_app.config['RESULTS_FOLDER'],
-                               filename, as_attachment=False)
+		snakefile = os.path.join(current_app.config['PIPELINE_FOLDER'], "virus/Snakefile")
+		thread = Thread(target=snake_hlb, args=(snakefile,path,query))
+		thread.start()
+			#snakemake.snakemake(os.path.join(current_app.config['PIPELINE_FOLDER'], "test/Snakefile"), workdir=path)
+			#current_user.launch_task('example', ('Creating your assembly...'), path)
+			#db.session.commit()
+		return redirect(url_for('main.index', username=current_user.username))
+	return render_template("viruspipe.html", user=user, form=form)

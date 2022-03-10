@@ -36,9 +36,9 @@ class User(UserMixin, db.Model):
 		db.session.add(n)
 		return n
 
-	def launch_task(self, name, description, *args, **kwargs):
-		rq_job = current_app.task_queue.enqueue('app.tasks.' + name, self.id,*args, **kwargs)
-		task = Task(id=rq_job.get_id(), name=name, description=description, user=self)
+	def launch_task(self, name, description, path, *args, **kwargs):
+		rq_job = current_app.task_queue.enqueue('app.tasks.' + name, self.id, path, *args, **kwargs)
+		task = Task(id=rq_job.get_id(), name=name, description=description, path=path, user=self)
 		db.session.add(task)
 		return task
 
@@ -76,6 +76,10 @@ class Run(db.Model):
 
 	def to_dict(self):
 		return {
+			'id': self.id,
+			'extension_R1_user': self.extension_R1_user,
+			'extension_R2_user': self.extension_R2_user,
+			'PE_SE': self.PE_SE,
 			'run_id': self.run_id,
 			'seq_platform': self.seq_platform,
 			'description': self.description,
@@ -94,10 +98,18 @@ class Sample(db.Model):
 	def __repr__(self):
 		return '<Sample {}>'.format(self.sample_id)
 
+	def to_dict(self):
+		return {
+		'sample_id': self.sample_id,
+		'host': self.host
+		}
+
+
 class Task(db.Model):
 	id = db.Column(db.String(36), primary_key=True)
 	name = db.Column(db.String(128), index=True)
 	description = db.Column(db.String(128))
+	path = db.Column(db.String(140))
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 	complete = db.Column(db.Boolean, default=False)
 

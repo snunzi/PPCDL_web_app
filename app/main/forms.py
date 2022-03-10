@@ -1,6 +1,6 @@
 from flask import request
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, SelectField, BooleanField, TextField, MultipleFileField
+from wtforms import StringField, SubmitField, TextAreaField, SelectField, BooleanField, TextField, MultipleFileField, RadioField
 from wtforms.validators import ValidationError, DataRequired, Length, Optional
 from flask_wtf.file import FileField, FileRequired
 from app.models import User, Sample, Run
@@ -40,3 +40,15 @@ class ConfigForm(FlaskForm):
     ref_proteomes = [('A4', 'A4'), ('psy62', 'psy62'), ('JXGC','JXGC'), ('Ishi-1','Ishi-1'), ('gxpsy','gxpsy')]
     ref_proteome = SelectField('Reference Genome', choices=ref_proteomes, validators=[DataRequired()])
     submit = SubmitField(('Submit'))
+
+class PipelineForm(FlaskForm):
+    pipeline_choices = [('virus_id', 'Virus ID'), ('ill_meta', 'Illumina Metabarcoding')]
+    pipeline = SelectField('Analysis Pipeline', choices=pipeline_choices, validators=[DataRequired()])
+    submit = SubmitField(('Submit'))
+
+class VirusConfigForm(FlaskForm):
+    library_choices = [('total','RiboZero RNA'),('small','Small RNA')]
+    library_type = SelectField('Library Type', choices=library_choices, validators=[DataRequired()])
+    blastx_run = RadioField('Perform blastx on Contigs?', choices=[('blastx','Yes'),('dont','No')])
+    reads_out = RadioField('Output viral read fasta?', choices=[('output','Yes'),('dont','No')])
+    submit = SubmitField(('Run'))

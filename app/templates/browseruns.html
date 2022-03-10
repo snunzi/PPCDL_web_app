@@ -6,10 +6,11 @@
     <h2>Runs</h2>
     <p></p><p>
     <h4><a href="{{ url_for('main.run', username=current_user.username) }}"> + Add New Run </a></h4>
-
+    <form method="POST">
     <table id="data" class="table table-striped">
       <thead>
         <tr>
+          <th></th>
           <th>Run</th>
           <th>Description</th>
           <th>Date</th>
@@ -33,19 +34,29 @@
         ajax: "{{ url_for('main.rundata') }}",
         serverSide: true,
         columns: [
+          {data: 'id', orderable: false},
           {data: 'run_id'},
           {data: 'description'},
           {data: 'timestamp'},
           {data: 'run_id', orderable: false}
         ],
-        "columnDefs": [ {
-          "targets": -1,
-          "data": data[0],
-          "render": function (data, type, row, meta) {
-            let url = "{{ url_for('main.runsamples', username=current_user.username, runname='DATA') }}".replace('DATA', data);
-            return '<a href="' + url + '">'+'View'+'</a>';
-          }
-        } ]
+        "columnDefs": [
+          {
+            "targets": -1,
+            "data": data[1],
+            "render": function (data, type, row, meta) {
+              let url = "{{ url_for('main.runsamples', username=current_user.username, runname='DATA') }}".replace('DATA', data);
+              return '<a href="' + url + '">'+'View'+'</a>';
+            }
+          },
+          {
+            "targets": 0,
+            "data": data[0],
+            "render": function (data, type, row, meta) {
+              return '<input type="checkbox" name="chkbox" value=' + data + '>'+''+'</a>';
+        } }
+        ],
+          order: [[ 1, 'asc' ]]
       });
     });
   </script>

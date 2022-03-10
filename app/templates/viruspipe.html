@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Choose Parameters</h1>
+    <div class="row">
+        <div class="col-md-4">
+          <form method="POST" >
+            {{ form.hidden_tag() }}
+            {{ wtf.form_errors(form, hiddens="only") }}
+
+            {{ wtf.form_field(form.library_type) }}
+
+            {{ form.blastx_run.label }}</br>
+            {{ form.blastx_run (style="list-style:none") }}
+
+            {{ form.reads_out.label }}</br>
+            {{ form.reads_out (style="list-style:none") }}
+
+            {{ wtf.form_field(form.submit) }}
+          </form>
+        </div>
+    </div>
+{% endblock %}
