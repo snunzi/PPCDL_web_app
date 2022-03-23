@@ -14,6 +14,8 @@
           <th>Run</th>
           <th>Description</th>
           <th>Date</th>
+          <th>QC</th>
+          <th>Analysis</th>
           <th>Samples</th>
         </tr>
       </thead>
@@ -38,6 +40,8 @@
           {data: 'run_id'},
           {data: 'description'},
           {data: 'timestamp'},
+          {data: 'qc_output', orderable: false},
+          {data: 'summary_output', orderable: false},
           {data: 'run_id', orderable: false}
         ],
         "columnDefs": [
@@ -47,6 +51,32 @@
             "render": function (data, type, row, meta) {
               let url = "{{ url_for('main.runsamples', username=current_user.username, runname='DATA') }}".replace('DATA', data);
               return '<a href="' + url + '">'+'View'+'</a>';
+            }
+          },
+          {
+            "targets": -2,
+            "data": data[1],
+            "render": function (data, type, row, meta) {
+              if ( data === null ) {
+                return '';
+              }
+              else {
+                let url = "{{ url_for('main.runanalysis', username=current_user.username, runname='DATA') }}".replace('DATA', row.run_id);
+                return '<a href="' + url + '">'+'View'+'</a>';
+              }
+            }
+          },
+          {
+            "targets": -3,
+            "data": data[1],
+            "render": function (data, type, row, meta) {
+              if ( data === null ) {
+                return '';
+              }
+              else {
+                let url = "{{ url_for('main.runqc', username=current_user.username, runname='DATA') }}".replace('DATA', row.run_id);
+                return '<a href="' + url + '">'+'View'+'</a>';
+              }
             }
           },
           {

@@ -8,6 +8,7 @@ from flask_login import LoginManager
 from flask_session import Session
 from config import Config
 from flask_bootstrap import Bootstrap
+import flask_excel as excel
 from redis import Redis
 import rq
 
@@ -27,6 +28,7 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     login.init_app(app)
     bootstrap.init_app(app)
+    excel.init_excel(app)
     sess.init_app(app)
 
     app.redis = Redis.from_url(app.config['REDIS_URL'])

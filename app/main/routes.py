@@ -1,8 +1,8 @@
 import os
-from flask import render_template, flash, redirect, url_for, request, send_from_directory, current_app, send_from_directory, json
+from flask import render_template, flash, redirect, url_for, request, send_from_directory, current_app, json, render_template_string
 from flask_login import current_user, login_required
 from app import db
-from app.models import User, Sample, Run
+from app.models import User, Sample, Run, ReadSummary
 from app.main import bp
 from app.main.forms import AssemblyForm, ConfigForm, CreateRun, PipelineForm, VirusConfigForm
 from werkzeug.utils import secure_filename
@@ -13,6 +13,8 @@ import fileinput
 import sys
 from threading import Thread
 from app.tasks import snake_hlb
+import flask_excel as excel
+import pyexcel as pe
 
 
 @bp.route('/')
@@ -132,6 +134,29 @@ def runsamples(username,runname):
 	samples = Sample.query.filter_by(run_id=run.id).all()
 	return render_template('runsamples.html', user=user, runname=runname, samples=samples)
 
+@bp.route('/user/<username>/RunAnalysis/<runname>', methods=['GET'])
+@login_required
+def runanalysis(username,runname):
+	run = Run.query.filter_by(run_id=runname).first_or_404()
+	book = pe.get_book(file_name=run.summary_output)
+	return excel.make_response(book, 'handsontable.html')
+	# run = Run.query.filter_by(run_id=runname).first_or_404()
+	# samples = Sample.query.filter_by(run_id=run.id).all()
+	# ids = [row.id for row in samples]
+	# query = ReadSummary.query.filter(ReadSummary.sample_id.in_(ids)).all()
+	# column_names = ['sample_name', 'raw_reads']
+	# return excel.make_response_from_query_sets(query, column_names, 'handsontable.html')
+
+@bp.route('/user/<username>/RunQC/<runname>', methods=['GET'])
+@login_required
+def runqc(username,runname):
+	run = Run.query.filter_by(run_id=runname).first_or_404()
+	qc = run.qc_output
+	text_file = open(qc, "r")
+	data = text_file.read()
+	text_file.close()
+	return data
+
 @bp.route('/user/<username>/UpdateSamples', methods=['POST'])
 @login_required
 def updatesample(username):
@@ -192,7 +217,7 @@ def viruspipe(username, run):
 							line = line.replace(f_key, str(f_value))
 					print(line, file = config_file)
 		snakefile = os.path.join(current_app.config['PIPELINE_FOLDER'], "virus/Snakefile")
-		thread = Thread(target=snake_hlb, args=(snakefile,path,query))
+		thread = Thread(target=snake_hlb, args=(snakefile,path,run))
 		thread.start()
 			#snakemake.snakemake(os.path.join(current_app.config['PIPELINE_FOLDER'], "test/Snakefile"), workdir=path)
 			#current_user.launch_task('example', ('Creating your assembly...'), path)

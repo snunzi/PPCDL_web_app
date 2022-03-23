@@ -67,8 +67,10 @@ class Run(db.Model):
 	extension_R1_user = db.Column(db.String(140))
 	extension_R2_user = db.Column(db.String(140))
 	description = db.Column(db.String(140))
+	summary_output = db.Column(db.String(140))
+	qc_output = db.Column(db.String(140))
 	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-	samples = db.relationship('Sample', backref='run_name', lazy='dynamic')
+	samples = db.relationship('Sample', backref='run_name', lazy='dynamic', cascade="all,delete")
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 	def __repr__(self):
@@ -83,6 +85,8 @@ class Run(db.Model):
 			'run_id': self.run_id,
 			'seq_platform': self.seq_platform,
 			'description': self.description,
+			'summary_output': self.summary_output,
+			'qc_output': self.qc_output,
 			'timestamp': str(self.timestamp),
 		}
 
@@ -104,6 +108,53 @@ class Sample(db.Model):
 		'host': self.host
 		}
 
+class ReadSummary(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	sample_name = db.Column(db.String(140))
+	raw_reads = db.Column(db.String(140))
+
+	sample_id = db.Column(db.Integer, db.ForeignKey('sample.id'),nullable=False)
+	sample = db.relationship('Sample', backref=db.backref('readsummarys', lazy='dynamic', cascade="all,delete"))
+
+	def __init__(self, sample_name, raw_reads, sample):
+		self.sample_name = sample_name
+		self.raw_reads = raw_reads
+		self.sample = sample
+
+	def __repr__(self):
+		return '<ReadSummary %r>' % self.sample_name
+
+class PathoscopeSummary(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	sample_name = db.Column(db.String(140))
+	acc = db.Column(db.String(140))
+	ti = db.Column(db.String(140))
+	reads = db.Column(db.String(140))
+	bp_covered = db.Column(db.String(140))
+	coverage = db.Column(db.String(140))
+	classification = db.Column(db.String(140))
+	adapt_id = db.Column(db.String(140))
+	description = db.Column(db.String(140))
+	virus = db.Column(db.String(140))
+
+	sample_id = db.Column(db.Integer, db.ForeignKey('sample.id'),nullable=False)
+	sample = db.relationship('Sample', backref=db.backref('pathoscopesummarys', lazy='dynamic', cascade="all,delete"))
+
+	def __init__(self, sample_name, acc, ti, reads, bp_covered, coverage, classification, adapt_id, description, virus, sample):
+		self.sample_name = sample_name
+		self.acc = acc
+		self.ti = ti
+		self.reads = reads
+		self.bp_covered = bp_covered
+		self.coverage = coverage
+		self.classification = classification
+		self.adapt_id = adapt_id
+		self.description = description
+		self.virus = virus
+		self.sample = sample
+
+	def __repr__(self):
+		return '<PathoscopeSummary %r>' % self.sample_name
 
 class Task(db.Model):
 	id = db.Column(db.String(36), primary_key=True)
