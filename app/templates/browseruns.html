@@ -17,6 +17,7 @@
           <th>QC</th>
           <th>Analysis</th>
           <th>Samples</th>
+          <th>Options</th>
         </tr>
       </thead>
       <tbody>
@@ -42,11 +43,12 @@
           {data: 'timestamp'},
           {data: 'qc_output', orderable: false},
           {data: 'summary_output', orderable: false},
+          {data: 'run_id', orderable: false},
           {data: 'run_id', orderable: false}
         ],
         "columnDefs": [
           {
-            "targets": -1,
+            "targets": -2,
             "data": data[1],
             "render": function (data, type, row, meta) {
               let url = "{{ url_for('main.runsamples', username=current_user.username, runname='DATA') }}".replace('DATA', data);
@@ -54,7 +56,22 @@
             }
           },
           {
-            "targets": -2,
+            "targets": -5,
+            "render": function (data, type, row, meta) {
+              var tdat = data.split(' ');
+              return tdat[0];
+            }
+          },
+          {
+            "targets": -1,
+            "data": data[1],
+            "render": function (data, type, row, meta) {
+              let durl = "{{ url_for('main.rundelete', username=current_user.username, runname='DATA') }}".replace('DATA', data);
+              return '<a class="btn btn-info btn-sm" onclick="return DeleteFunction()" href="' + durl  + '">' + 'Delete'+'</a><a class="btn btn-info btn-sm" onclick="return DeleteFunction()" href="' + durl  + '">' + 'Edit'+'</a>';
+            }
+          },
+          {
+            "targets": -3,
             "data": data[1],
             "render": function (data, type, row, meta) {
               if ( data === null ) {
@@ -67,7 +84,7 @@
             }
           },
           {
-            "targets": -3,
+            "targets": -4,
             "data": data[1],
             "render": function (data, type, row, meta) {
               if ( data === null ) {
@@ -83,11 +100,28 @@
             "targets": 0,
             "data": data[0],
             "render": function (data, type, row, meta) {
-              return '<input type="checkbox" name="chkbox" value=' + data + '>'+''+'</a>';
+              return '<input type="checkbox" name="chkbox" onclick="onlyOne(this)" value=' + data + '>'+''+'</a>';
         } }
         ],
           order: [[ 1, 'asc' ]]
       });
     });
+  </script>
+  <script>
+    function DeleteFunction() {
+        if (confirm('Are you sure you want to delete this run--this will also delete uploaded raw reads?'))
+            return true;
+        else {
+            return false;
+        }
+    }
+  </script>
+  <script>
+    function onlyOne(checkbox) {
+      var checkboxes = document.getElementsByName('chkbox')
+      checkboxes.forEach((item) => {
+          if (item !== checkbox) item.checked = false
+      })
+    }
   </script>
 {% endblock %}

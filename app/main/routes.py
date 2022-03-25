@@ -15,6 +15,7 @@ from threading import Thread
 from app.tasks import snake_hlb
 import flask_excel as excel
 import pyexcel as pe
+import shutil
 
 
 @bp.route('/')
@@ -157,6 +158,19 @@ def runqc(username,runname):
 	text_file.close()
 	return data
 
+@bp.route('/user/<username>/RunDelete/<runname>', methods=['GET'])
+@login_required
+def rundelete(username,runname):
+	run = Run.query.filter_by(run_id=runname).first_or_404()
+	db.session.delete(run)
+	db.session.commit()
+	dir_path = os.path.join(current_app.config['UPLOAD_FOLDER'],runname)
+	try:
+		shutil.rmtree(dir_path)
+	except OSError as e:
+		print("Error: %s : %s" % (dir_path, e.strerror))
+	return render_template('browseruns.html', user=user)
+
 @bp.route('/user/<username>/UpdateSamples', methods=['POST'])
 @login_required
 def updatesample(username):
@@ -222,5 +236,6 @@ def viruspipe(username, run):
 			#snakemake.snakemake(os.path.join(current_app.config['PIPELINE_FOLDER'], "test/Snakefile"), workdir=path)
 			#current_user.launch_task('example', ('Creating your assembly...'), path)
 			#db.session.commit()
+		flash('Your analysis is running!')
 		return redirect(url_for('main.index', username=current_user.username))
 	return render_template("viruspipe.html", user=user, form=form)
