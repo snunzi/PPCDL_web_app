@@ -1,9 +1,11 @@
 import os
+from os.path import exists
 from flask import render_template, flash, redirect, url_for, request, send_from_directory, current_app, json, render_template_string
 from flask_login import current_user, login_required
 from app import db
 from app.models import User, Sample, Run, ReadSummary
 from app.main import bp
+from app.main.helper import merge_fastq
 from app.main.forms import AssemblyForm, ConfigForm, CreateRun, PipelineForm, VirusConfigForm
 from werkzeug.utils import secure_filename
 from Bio import SeqIO
@@ -39,12 +41,22 @@ def run(username):
 		path = os.path.join(current_app.config['UPLOAD_FOLDER'],form.run_id.data,'data')
 		os.makedirs(path)
 		files_filenames = []
+		files_filenames_path = []
 		for f in form.reads.data:
 			f_filename = secure_filename(f.filename)
 			f.save(os.path.join(path, f_filename))
 			files_filenames.append(f_filename)
+			files_filenames_path.append(os.path.join(path, f_filename))
 		samples = list(set([sub.replace(form.extension_R1_user.data, "").replace(form.extension_R2_user.data, "")
 			for sub in files_filenames]))
+
+		#Concatenate multilane Illumina files
+		if form.extension.data == 'Yes':
+			keysList = merge_fastq(files_filenames_path)
+			form.extension_R1_user.data = '_R1_001.fastq.gz'
+			form.extension_R2_user.data = '_R2_001.fastq.gz'
+			samples = list(set([sub.replace(form.extension_R1_user.data, "").replace(form.extension_R2_user.data, "")
+				for sub in keysList]))
 
 
 		run = Run(run_id=form.run_id.data, seq_platform=form.seq_platform.data, PE_SE=form.PE_SE.data, extension=form.extension.data, extension_R1_user=form.extension_R1_user.data, extension_R2_user=form.extension_R2_user.data, description=form.Description.data, author=current_user)
