@@ -5,6 +5,7 @@
 <div id="main" class="container">
     <h2>Runs</h2>
     <p></p><p>
+    <h4><a href="{{ url_for('main.run', username=current_user.username) }}"> + Add New Run </a></h4>
     <form method="POST">
     <table id="data" class="table table-striped">
       <thead>
@@ -16,6 +17,7 @@
           <th>QC</th>
           <th>Analysis</th>
           <th>Samples</th>
+          <th>Options</th>
         </tr>
       </thead>
       <tbody>
@@ -32,7 +34,7 @@
   <script>
     $(document).ready(function () {
       $('#data').DataTable({
-        ajax: "{{ url_for('main.allrundata') }}",
+        ajax: "{{ url_for('main.rundata', username=current_user.username) }}",
         serverSide: true,
         columns: [
           {data: 'id', orderable: false},
@@ -41,11 +43,12 @@
           {data: 'timestamp'},
           {data: 'qc_output', orderable: false},
           {data: 'summary_output', orderable: false},
+          {data: 'run_id', orderable: false},
           {data: 'run_id', orderable: false}
         ],
         "columnDefs": [
           {
-            "targets": -1,
+            "targets": -2,
             "data": data[1],
             "render": function (data, type, row, meta) {
               let url = "{{ url_for('main.runsamples', username=current_user.username, runname='DATA') }}".replace('DATA', data);
@@ -53,14 +56,22 @@
             }
           },
           {
-            "targets": -4,
+            "targets": -5,
             "render": function (data, type, row, meta) {
               var tdat = data.split(' ');
               return tdat[0];
             }
           },
           {
-            "targets": -2,
+            "targets": -1,
+            "data": data[1],
+            "render": function (data, type, row, meta) {
+              let durl = "{{ url_for('main.rundelete', username=current_user.username, runname='DATA') }}".replace('DATA', data);
+              return '<a class="btn btn-info btn-sm" onclick="return DeleteFunction()" href="' + durl  + '">' + 'Delete'+'</a><a class="btn btn-info btn-sm" onclick="return DeleteFunction()" href="' + durl  + '">' + 'Edit'+'</a>';
+            }
+          },
+          {
+            "targets": -3,
             "data": data[1],
             "render": function (data, type, row, meta) {
               if ( data === null ) {
@@ -74,7 +85,7 @@
             }
           },
           {
-            "targets": -3,
+            "targets": -4,
             "data": data[1],
             "render": function (data, type, row, meta) {
               if ( data === null ) {

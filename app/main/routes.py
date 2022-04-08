@@ -93,9 +93,74 @@ def browseruns(username):
 		return redirect(url_for('main.pipeline', username=current_user.username, run=run))
 	return render_template('browseruns.html')
 
-@bp.route('/user/rundata')
+@bp.route('/user/<username>/BrowseMyRuns', methods=['GET', 'POST'])
 @login_required
-def rundata():
+def browsemyruns(username):
+	user = User.query.filter_by(username=username).first_or_404()
+	if request.method == 'POST':
+		run_list = request.form.getlist('chkbox')
+		run = run_list[0]
+		analy_run = Run.query.filter_by(id=run).first()
+		sample_ids = Sample.query.filter_by(run_id=analy_run.id).all()
+		#path = os.path.join(current_app.config['UPLOAD_FOLDER'],form.run_id.data,'data')
+		with open(os.path.join(current_app.config['CONFIG_FOLDER'], "samples.tsv"), 'w') as filehandle:
+			filehandle.write("sample\n")
+			for listitem in sample_ids:
+				filehandle.write('%s\n' % listitem.sample_id)
+				#print("This is the file " + listitem, file=sys.stderr)
+		return redirect(url_for('main.pipeline', username=current_user.username, run=run))
+	return render_template('browsemyruns.html')
+
+@bp.route('/user/<username>/rundata')
+@login_required
+def rundata(username):
+	idquery = User.query.filter_by(username=username).first()
+	query = Run.query.filter_by(user_id=idquery.id)
+
+	# search filter
+	search = request.args.get('search[value]')
+	if search:
+		query = query.filter(db.or_(
+			Run.description.like(f'%{search}%'),
+			Run.run_id.like(f'%{search}%')
+	))
+	total_filtered = query.count()
+
+	# sorting
+	order = []
+	i = 0
+	while True:
+		col_index = request.args.get(f'order[{i}][column]')
+		if col_index is None:
+			break
+		col_name = request.args.get(f'columns[{col_index}][data]')
+		if col_name not in ['run_id', 'timestamp']:
+			col_name = 'run_id'
+		descending = request.args.get(f'order[{i}][dir]') == 'desc'
+		col = getattr(Run, col_name)
+		if descending:
+			col = col.desc()
+		order.append(col)
+		i += 1
+	if order:
+		query = query.order_by(*order)
+
+	# pagination
+	start = request.args.get('start', type=int)
+	length = request.args.get('length', type=int)
+	query = query.offset(start).limit(length)
+
+	# response
+	return {
+		'data': [run.to_dict() for run in query],
+		'recordsFiltered': total_filtered,
+		'recordsTotal': Run.query.count(),
+		'draw': request.args.get('draw', type=int),
+	}
+
+@bp.route('/user/allrundata')
+@login_required
+def allrundata():
 	query = Run.query
 
 	# search filter
@@ -160,6 +225,16 @@ def runanalysis(username,runname):
 	# column_names = ['sample_name', 'raw_reads']
 	# return excel.make_response_from_query_sets(query, column_names, 'handsontable.html')
 
+@bp.route('/user/<username>/RunAnalysisDownload/<runname>', methods=['GET'])
+@login_required
+def runanalysisdown(username,runname):
+	run = Run.query.filter_by(run_id=runname).first_or_404()
+	analysis = run.summary_output
+	analysis_file = analysis.split("/")[-1]
+	analysis_path =  "/".join(analysis.split("/")[:-1])
+	print(analysis_path)
+	return send_from_directory(analysis_path, filename=analysis_file, as_attachment=True)
+
 @bp.route('/user/<username>/RunQC/<runname>', methods=['GET'])
 @login_required
 def runqc(username,runname):
@@ -169,6 +244,17 @@ def runqc(username,runname):
 	data = text_file.read()
 	text_file.close()
 	return data
+
+@bp.route('/user/<username>/RunQCDownload/<runname>', methods=['GET'])
+@login_required
+def runqcdown(username,runname):
+	run = Run.query.filter_by(run_id=runname).first_or_404()
+	qc = run.qc_output
+	qc_file = qc.split("/")[-1]
+	qc_path =  "/".join(qc.split("/")[:-1])
+	print(qc_path)
+	return send_from_directory(qc_path, filename=qc_file, as_attachment=True)
+
 
 @bp.route('/user/<username>/RunDelete/<runname>', methods=['GET'])
 @login_required
