@@ -267,7 +267,7 @@ def rundelete(username,runname):
 		shutil.rmtree(dir_path)
 	except OSError as e:
 		print("Error: %s : %s" % (dir_path, e.strerror))
-	return render_template('browseruns.html', user=user)
+	return render_template('browsemyruns.html', user=user)
 
 @bp.route('/user/<username>/UpdateSamples', methods=['POST'])
 @login_required
