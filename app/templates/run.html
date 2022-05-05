@@ -3,43 +3,59 @@
 
 
 {% block app_content %}
-<h1>Create a Run</h1>
-<div class="row">
-      <div class="col-md-4">
-  <form method="POST" action="" enctype="multipart/form-data">
-    {{ form.hidden_tag() }}
-    {{ wtf.form_errors(form, hiddens="only") }}
+<body>
+  <head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/loading.css') }}">
+  </head>
+  <h1>Create a Run</h1>
+  <div class="row">
+        <div class="col-md-4">
+    <form method="POST" action="" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+      {{ wtf.form_errors(form, hiddens="only") }}
 
-    {{ wtf.form_field(form.run_id) }}
-    {{ wtf.form_field(form.seq_platform) }}
-    {{ wtf.form_field(form.PE_SE) }}
-    {{ form.extension.label }}</br>
-    {{ form.extension(onchange="enterExt()") }}
-    <div id="extension_R1_user" style="display: none;">
-      {{ form.extension_R1_user.label }}</br>
-      {{ form.extension_R1_user }}
-    </div>
-    <div id="extension_R2_user" style="display: none;">
-      {{ form.extension_R2_user.label }}</br>
-      {{ form.extension_R2_user }}
-    </div>
-    {{ wtf.form_field(form.Description) }}
-    {{ wtf.form_field(form.reads) }}
-    {{ wtf.form_field(form.submit) }}
-  </form>
+      {{ wtf.form_field(form.run_id) }}
+      {{ wtf.form_field(form.seq_platform) }}
+      {{ wtf.form_field(form.PE_SE) }}
+      {{ form.extension.label }}</br>
+      {{ form.extension(onchange="enterExt()") }}
+      <div id="extension_R1_user" style="display: none;">
+        {{ form.extension_R1_user.label }}</br>
+        {{ form.extension_R1_user }}
+      </div>
+      <div id="extension_R2_user" style="display: none;">
+        {{ form.extension_R2_user.label }}</br>
+        {{ form.extension_R2_user }}
+      </div>
+      {{ wtf.form_field(form.Description) }}
+      {{ wtf.form_field(form.reads) }}
+      <input type="submit" id="form_submit" value="Submit" onclick="loading();">
+      <div id="loading" style="display: none;"><img src="/static/img/Spinner-2.gif" alt="Be patient..." /></div>
+    </form>
 
-  <script>
-  function enterExt() {
-    let box_value = document.getElementById("extension").value;
-    if (box_value === "No") {
-      document.getElementById("extension_R1_user").style.display = "block";
-      document.getElementById("extension_R2_user").style.display = "block"
-    } else {
-      document.getElementById("extension_R1_user").style.display = "none";
-      document.getElementById("extension_R2_user").style.display = "none"
+    <script>
+    function enterExt() {
+      let box_value = document.getElementById("extension").value;
+      if (box_value === "No") {
+        document.getElementById("extension_R1_user").style.display = "block";
+        document.getElementById("extension_R2_user").style.display = "block"
+      } else {
+        document.getElementById("extension_R1_user").style.display = "none";
+        document.getElementById("extension_R2_user").style.display = "none"
+      }
     }
-  }
-  enterExt()
-  </script>
-</div>
+    enterExt()
+    </script>
+  </div>
+</body>
+{% endblock %}
+
+{% block scripts %}
+  {{super()}}
+  <script type="text/javascript">// <![CDATA[
+          function loading(){
+              $("#loading").show();
+              $("#form_submit").hide();
+          }
+  // ]]></script>
 {% endblock %}
