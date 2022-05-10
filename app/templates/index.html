@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-    <h1>Hi, {{ current_user.username }}!</h1>
-    <h2>Welcome to PPCDL Web GUI. Please upload your sample and pick a pipeline to run</h2>
+    <h1>Welcome to PPCDL Bioinformatics Web GUI. </h1>
+    <h2>Please follow directions below to upload your samples and run analysis</h2>
+    <ol type="1">
+      <li>Go to 'My Runs' and select 'Add New Run'</li>
+      <li>Enter metadata and upload fastq files</li>
+      <li>To change the host of samples, click on 'View' under samples and change host of each sample</li>
+      <li>Check the run you want to analyze and click 'Analyze'</li>
+      <li>Start the analysis and you will recieve an email when the pipeline finishes and your results are ready to view</li>
+      <li>Results can be viewed on your web browser or downloaded to your home directory</li>
+    </ol>
 {% endblock %}

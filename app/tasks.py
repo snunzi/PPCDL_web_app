@@ -8,6 +8,7 @@ from app import create_app, db
 from app.models import User, Task, Sample, Run, ReadSummary, PathoscopeSummary
 import snakemake
 import pyexcel as pe
+import subprocess
 
 app = create_app()
 app.app_context().push()
@@ -24,8 +25,19 @@ def _set_task_progress(progress):
 		db.session.commit()
 
 def snake_hlb(snakefile,path,run):
-	#Run pi
-	snakemake.snakemake(snakefile, workdir=path, conda_prefix="/home/sonunziata/pipeline_environments", cores=20, use_conda=True, keepgoing=True, resources={"load":1})
+	#Create run script
+	script_path = os.path.join(path,'run_snakemake.py')
+	command = ''.join(['snakemake.snakemake("',snakefile,'", workdir="',path,'", conda_prefix="/home/sonunziata/pipeline_environments", cores=40, use_conda=True, keepgoing=True, resources={"load":1})'])
+	with open(script_path, 'w') as f:
+		f.write("#!/usr/bin/env /home/sonunziata/miniconda3/envs/snakemake/bin/python\n")
+		f.write("import snakemake\n")
+		f.write(command)
+
+	#Run snakemake pipeline
+	subprocess.run(['python', script_path])
+	#snakemake.snakemake(snakefile, workdir=path, conda_prefix="/home/sonunziata/pipeline_environments", cores=20, use_conda=True, keepgoing=True, resources={"load":1})
+
+	#Process pipeline output
 	output_path = os.path.join(path,"summary_output/virus_summary_output.xlsx")
 	qc_path = os.path.join(path,"summary_output/multiqc_report.html")
 
