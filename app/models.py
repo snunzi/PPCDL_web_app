@@ -62,6 +62,7 @@ class Run(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	run_id = db.Column(db.String(140), index=True, unique=True)
 	seq_platform = db.Column(db.String(140))
+	share = db.Column(db.String(140))
 	PE_SE = db.Column(db.String(140))
 	extension = db.Column(db.String(140))
 	extension_R1_user = db.Column(db.String(140))
@@ -82,6 +83,7 @@ class Run(db.Model):
 			'extension_R1_user': self.extension_R1_user,
 			'extension_R2_user': self.extension_R2_user,
 			'PE_SE': self.PE_SE,
+			'share': self.share,
 			'run_id': self.run_id,
 			'seq_platform': self.seq_platform,
 			'description': self.description,

@@ -6,7 +6,7 @@ from app import db
 from app.models import User, Sample, Run, ReadSummary
 from app.main import bp
 from app.main.helper import merge_fastq
-from app.main.forms import AssemblyForm, ConfigForm, CreateRun, PipelineForm, VirusConfigForm
+from app.main.forms import AssemblyForm, ConfigForm, CreateRun, PipelineForm, VirusConfigForm, MinMetaConfigForm
 from werkzeug.utils import secure_filename
 from Bio import SeqIO
 import snakemake
@@ -59,7 +59,7 @@ def run(username):
 				for sub in keysList]))
 
 
-		run = Run(run_id=form.run_id.data, seq_platform=form.seq_platform.data, PE_SE=form.PE_SE.data, extension=form.extension.data, extension_R1_user=form.extension_R1_user.data, extension_R2_user=form.extension_R2_user.data, description=form.Description.data, author=current_user)
+		run = Run(run_id=form.run_id.data, share=form.share.data, seq_platform=form.seq_platform.data, PE_SE=form.PE_SE.data, extension=form.extension.data, extension_R1_user=form.extension_R1_user.data, extension_R2_user=form.extension_R2_user.data, description=form.Description.data, author=current_user)
 
 		db.session.add(run)
 		db.session.commit()
@@ -71,8 +71,8 @@ def run(username):
 			db.session.add(samp)
 			db.session.commit()
 
-		flash('Your run is now uploaded!')
-		return redirect(url_for('main.index'))
+		flash('Your run is now uploaded! Click View under Samples to change sample host')
+		return redirect(url_for('main.browsemyruns', username=current_user.username))
 	return render_template("run.html", user=user, form=form)
 
 @bp.route('/user/<username>/BrowseRuns', methods=['GET', 'POST'])
@@ -161,7 +161,7 @@ def rundata(username):
 @bp.route('/user/allrundata')
 @login_required
 def allrundata():
-	query = Run.query
+	query = Run.query.filter_by(share='Yes')
 
 	# search filter
 	search = request.args.get('search[value]')
@@ -289,7 +289,10 @@ def updatesample(username):
 def pipeline(username, run):
 	form = PipelineForm()
 	if form.validate_on_submit():
-		return redirect(url_for('main.viruspipe', username=current_user.username, run=run))
+		if form.pipeline.data == 'virus_id':
+			return redirect(url_for('main.viruspipe', username=current_user.username, run=run))
+		if form.pipeline.data == 'min_meta':
+			return redirect(url_for('main.minmetapipe', username=current_user.username, run=run))
 	return render_template("pipeline.html", user=user, form=form, run=run)
 
 
@@ -317,6 +320,7 @@ def viruspipe(username, run):
 			#Generate config file
 			config_dict = request.form.to_dict()
 			config_dict.update(run_dict)
+			config_dict["user_email"] = current_user.email
 			del config_dict['id']
 			del config_dict['description']
 			with open(os.path.join(path, "config.yaml"), 'w') as config_file:
@@ -337,3 +341,22 @@ def viruspipe(username, run):
 		flash('Your analysis is running!')
 		return redirect(url_for('main.index', username=current_user.username))
 	return render_template("viruspipe.html", user=user, form=form)
+
+@bp.route('/user/<username>/MinMetaPipe/<run>', methods = ['GET', 'POST'])
+@login_required
+def minmetapipe(username, run):
+	form = MinMetaConfigForm()
+	if form.validate_on_submit():
+		query = Run.query.filter_by(id=run).first()
+		run_dict = query.to_dict()
+		path = os.path.join(current_app.config['UPLOAD_FOLDER'],run_dict['run_id'])
+
+		#Generate Sample file
+		samples = Sample.query.filter_by(run_id=run).all()
+		with open(os.path.join(path, "samples.tsv"), 'w') as sample_file:
+			print("sample\tbarcode", file=sample_file)
+			for sample in samples:
+				sample_dict = sample.to_dict()
+				print(sample_dict['sample_id'] + "\t" + sample_dict['barcode'], file=sample_file)
+
+	return render_template("minmetapipe.html", user=user, form=form)
