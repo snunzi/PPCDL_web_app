@@ -14,10 +14,11 @@ import pathlib
 import fileinput
 import sys
 from threading import Thread
-from app.tasks import snake_hlb
+from app.tasks import snake_hlb, snake_minmeta
 import flask_excel as excel
 import pyexcel as pe
 import shutil
+from shutil import copyfile
 
 
 @bp.route('/')
@@ -47,28 +48,37 @@ def run(username):
 			f.save(os.path.join(path, f_filename))
 			files_filenames.append(f_filename)
 			files_filenames_path.append(os.path.join(path, f_filename))
-		samples = list(set([sub.replace(form.extension_R1_user.data, "").replace(form.extension_R2_user.data, "")
-			for sub in files_filenames]))
-
-		#Concatenate multilane Illumina files
-		if form.extension.data == 'Yes':
-			keysList = merge_fastq(files_filenames_path)
-			form.extension_R1_user.data = '_R1_001.fastq.gz'
-			form.extension_R2_user.data = '_R2_001.fastq.gz'
+		#Create run and individual samples for illumina run
+		if form.run_type.data == 'ill_virus':
 			samples = list(set([sub.replace(form.extension_R1_user.data, "").replace(form.extension_R2_user.data, "")
-				for sub in keysList]))
+				for sub in files_filenames]))
+
+			#Concatenate multilane Illumina files
+			if form.extension.data == 'Yes':
+				keysList = merge_fastq(files_filenames_path)
+				form.extension_R1_user.data = '_R1_001.fastq.gz'
+				form.extension_R2_user.data = '_R2_001.fastq.gz'
+				samples = list(set([sub.replace(form.extension_R1_user.data, "").replace(form.extension_R2_user.data, "")
+					for sub in keysList]))
 
 
-		run = Run(run_id=form.run_id.data, share=form.share.data, seq_platform=form.seq_platform.data, PE_SE=form.PE_SE.data, extension=form.extension.data, extension_R1_user=form.extension_R1_user.data, extension_R2_user=form.extension_R2_user.data, description=form.Description.data, author=current_user)
+			run = Run(run_id=form.run_id.data, share=form.share.data, seq_platform=form.seq_platform.data, PE_SE=form.PE_SE.data, extension=form.extension.data, extension_R1_user=form.extension_R1_user.data, extension_R2_user=form.extension_R2_user.data, description=form.Description.data, author=current_user)
 
-		db.session.add(run)
-		db.session.commit()
+			db.session.add(run)
+			db.session.commit()
 
-		for s in samples:
-			R1 = os.path.join(path, s + form.extension_R1_user.data)
-			R2 = os.path.join(path, s + form.extension_R2_user.data)
-			samp = Sample(sample_id=s, R1_path=R1, R2_path=R2, run_name=run, host='arabidopsis')
-			db.session.add(samp)
+			for s in samples:
+				R1 = os.path.join(path, s + form.extension_R1_user.data)
+				R2 = os.path.join(path, s + form.extension_R2_user.data)
+				samp = Sample(sample_id=s, R1_path=R1, R2_path=R2, run_name=run, host='arabidopsis')
+				db.session.add(samp)
+				db.session.commit()
+
+		#Create run for minion run
+		if form.run_type.data == 'min_meta':
+			run = Run(run_id=form.run_id.data, share=form.share.data, seq_platform=form.seq_platform.data, PE_SE=form.PE_SE.data, extension=form.extension.data, extension_R1_user=form.extension_R1_user.data, extension_R2_user=form.extension_R2_user.data, description=form.Description.data, author=current_user)
+
+			db.session.add(run)
 			db.session.commit()
 
 		flash('Your run is now uploaded! Click View under Samples to change sample host')
@@ -323,6 +333,7 @@ def viruspipe(username, run):
 			config_dict["user_email"] = current_user.email
 			del config_dict['id']
 			del config_dict['description']
+			del config_dict['share']
 			with open(os.path.join(path, "config.yaml"), 'w') as config_file:
 				for line in fileinput.input(os.path.join(current_app.config['CONFIG_FOLDER'], "pipelines/virus/config.yaml"), inplace=False):
 					line = line.rstrip()
@@ -352,11 +363,26 @@ def minmetapipe(username, run):
 		path = os.path.join(current_app.config['UPLOAD_FOLDER'],run_dict['run_id'])
 
 		#Generate Sample file
-		samples = Sample.query.filter_by(run_id=run).all()
 		with open(os.path.join(path, "samples.tsv"), 'w') as sample_file:
 			print("sample\tbarcode", file=sample_file)
-			for sample in samples:
-				sample_dict = sample.to_dict()
-				print(sample_dict['sample_id'] + "\t" + sample_dict['barcode'], file=sample_file)
+			for fieldname, value in form.data.items():
+				if fieldname.startswith('barcode'):
+					print(str(value)+'\t'+str(fieldname),file=sample_file)
+
+		#Generate config file
+		source_con=os.path.join(current_app.config['CONFIG_FOLDER'], "pipelines/minion_metabarcode/config.yaml")
+		des_con=os.path.join(path, "config.yaml")
+		copyfile(source_con,des_con)
+
+		#start pipeline
+		snakefile = os.path.join(current_app.config['PIPELINE_FOLDER'], "minion_metabarcode/Snakefile")
+		thread = Thread(target=snake_minmeta, args=(snakefile,path,run))
+		thread.start()
+			#snakemake.snakemake(os.path.join(current_app.config['PIPELINE_FOLDER'], "test/Snakefile"), workdir=path)
+			#current_user.launch_task('example', ('Creating your assembly...'), path)
+			#db.session.commit()
+		flash('Your analysis is running!')
+
+		return redirect(url_for('main.index', username=current_user.username))
 
 	return render_template("minmetapipe.html", user=user, form=form)

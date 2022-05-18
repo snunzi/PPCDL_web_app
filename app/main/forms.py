@@ -8,8 +8,10 @@ from werkzeug.utils import secure_filename
 
 class CreateRun(FlaskForm):
     seq_platforms = [('Illumina', 'Illumina'), ('MinION', 'MinION')]
+    run_types = [('min_meta', 'MinION Metabarcoding'), ('ill_meta', 'Illumina Metabarcoding'), ('ill_virus', 'Illumina Virus')]
     ends = [('PE', 'PE'), ('SE', 'SE')]
     ext_ill = [('Yes','Yes'), ('No', 'No')]
+    run_type = SelectField('Sequencing Run Type', choices=run_types, validators=[DataRequired()])
     run_id = TextAreaField(('Run ID (For Illumina, use Illumina folder name i.g. YYMMDD_InstrumentID_RunID_FlowcellID)'), validators=[DataRequired()])
     share = SelectField('Make run accessible to other users?', choices=ext_ill, validators=[DataRequired()])
     seq_platform = SelectField('Platform', choices=seq_platforms, validators=[DataRequired()])

@@ -24,6 +24,28 @@ def _set_task_progress(progress):
 			task.complete = True
 		db.session.commit()
 
+def snake_minmeta(snakefile,path,run):
+	#Create run script
+	script_path = os.path.join(path,'run_snakemake.py')
+	command = ''.join(['snakemake.snakemake("',snakefile,'", workdir="',path,'", conda_prefix="/home/sonunziata/pipeline_environments", cores=40, use_conda=True, keepgoing=True, resources={"load":1})'])
+	with open(script_path, 'w') as f:
+		f.write("#!/usr/bin/env /home/sonunziata/miniconda3/envs/snakemake/bin/python\n")
+		f.write("import snakemake\n")
+		f.write(command)
+
+	#Run snakemake pipeline
+	subprocess.run(['python', script_path])
+
+	#Process pipeline output
+	output_path = os.path.join(path,"summary_output/mapping_summary.xlsx")
+
+	with app.app_context():
+		#Save results file to database
+		query = Run.query.filter_by(id=run).first()
+		setattr(query, 'summary_output', output_path)
+		db.session.commit()
+
+
 def snake_hlb(snakefile,path,run):
 	#Create run script
 	script_path = os.path.join(path,'run_snakemake.py')
