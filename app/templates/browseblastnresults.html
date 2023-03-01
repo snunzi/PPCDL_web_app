@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+
+{% block app_content %}
+<div id="main" class="container">
+    <h2>Virus Runs</h2>
+    <p></p><p>
+    <form method="POST">
+    <table id="data" class="table table-striped">
+      <thead>
+        <tr>
+          <th>Run</th>
+          <th>Sample</th>
+          <th>Accession</th>
+          <th>Percent ID</th>
+          <th>Virus Length</th>
+          <th>Contig Length</th>
+          <th>Alignment Length</th>
+          <th>E Value</th>
+          <th>bitscore</th>
+          <th>Fold Coverage</th>
+          <th>Classification</th>
+          <th>Description</th>
+          <th>Virus</th>
+          <th>Adapt ID</th>
+          <th>Sequence</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+  {{super()}}
+  <script>
+    $(document).ready(function () {
+      $('#data').DataTable({
+        ajax: "{{ url_for('main.blastndata', username=current_user.username, host=host) }}",
+        serverSide: true,
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excel',
+                text: 'Export to Excel',
+                exportOptions: {
+                    modifier: {
+                        page: 'current'
+                    }
+                }
+            }
+        ],
+        columns: [
+          {data: 'run_name'},
+          {data: 'sample_name'},
+          {data: 'acc', orderable: false},
+          {data: 'percent_id', orderable: false},
+          {data: 'virus_length', orderable: false},
+          {data: 'contig_length', orderable: false},
+          {data: 'alignment_length', orderable: false},
+          {data: 'evalue', orderable: false},
+          {data: 'bitscore', orderable: false},
+          {data: 'fold_cov', orderable: false},
+          {data: 'classification', orderable: false},
+          {data: 'description', orderable: false},
+          {data: 'virus', orderable: false},
+          {data: 'adapt_id', orderable: false},
+          {data: 'seq', orderable: false}
+        ],
+          order: [[ 1, 'desc' ]]
+      });
+    });
+  </script>
+{% endblock %}

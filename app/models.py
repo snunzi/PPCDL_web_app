@@ -61,8 +61,10 @@ class Notification(db.Model):
 class Run(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	run_id = db.Column(db.String(140), index=True, unique=True)
+	concat = db.Column(db.Boolean, default=False)
 	seq_platform = db.Column(db.String(140))
 	share = db.Column(db.String(140))
+	run_type = db.Column(db.String(140))
 	PE_SE = db.Column(db.String(140))
 	extension = db.Column(db.String(140))
 	extension_R1_user = db.Column(db.String(140))
@@ -98,6 +100,7 @@ class Sample(db.Model):
 	R1_path = db.Column(db.String(140))
 	R2_path = db.Column(db.String(140))
 	host = db.Column(db.String(140))
+	notes = db.Column(db.String())
 	timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 	run_id = db.Column(db.Integer, db.ForeignKey('run.id'))
 
@@ -107,7 +110,9 @@ class Sample(db.Model):
 	def to_dict(self):
 		return {
 		'sample_id': self.sample_id,
-		'host': self.host
+		'host': self.host,
+		'notes': self.notes,
+		'run_name': self.run_name
 		}
 
 class ReadSummary(db.Model):
@@ -155,8 +160,84 @@ class PathoscopeSummary(db.Model):
 		self.virus = virus
 		self.sample = sample
 
+	def to_dict(self):
+		return {
+		'sample_name': self.sample_name,
+		'acc': self.acc,
+		'ti': self.ti,
+		'reads': self.reads,
+		'bp_covered': self.bp_covered,
+		'coverage': self.coverage,
+		'classification': self.classification,
+		'adapt_id': self.adapt_id,
+		'description': self.description,
+		'virus': self.virus
+		}
+
 	def __repr__(self):
 		return '<PathoscopeSummary %r>' % self.sample_name
+
+class BlastnFull(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	sample_name = db.Column(db.String(140))
+	contig_id = db.Column(db.String(140))
+	acc = db.Column(db.String(140))
+	percent_id = db.Column(db.String(140))
+	virus_length = db.Column(db.String(140))
+	contig_length = db.Column(db.String(140))
+	alignment_length = db.Column(db.String(140))
+	evalue = db.Column(db.String(140))
+	bitscore = db.Column(db.String(140))
+	fold_cov = db.Column(db.String(140))
+	classification = db.Column(db.String(140))
+	description = db.Column(db.String(140))
+	virus = db.Column(db.String(140))
+	adapt_id = db.Column(db.String(140))
+	seq = db.Column(db.String())
+
+	sample_id = db.Column(db.Integer, db.ForeignKey('sample.id'),nullable=False)
+	sample = db.relationship('Sample', backref=db.backref('blastnfulls', lazy='dynamic', cascade="all,delete"))
+
+
+	def __init__(self, sample_name, contig_id, acc, percent_id , virus_length, contig_length, alignment_length, evalue, bitscore, fold_cov, classification, description, virus, adapt_id, seq, sample):
+		self.sample_name = sample_name
+		self.contig_id = contig_id
+		self.acc = acc
+		self.percent_id = percent_id
+		self.virus_length = virus_length
+		self.contig_length = contig_length
+		self.alignment_length = alignment_length
+		self.evalue = evalue
+		self.bitscore = bitscore
+		self.fold_cov = fold_cov
+		self.classification = classification
+		self.description = description
+		self.virus = virus
+		self.adapt_id = adapt_id
+		self.seq = seq
+		self.sample = sample
+
+	def to_dict(self):
+		return {
+		'sample_name': self.sample_name,
+		'contig_id': self.contig_id,
+		'acc': self.acc,
+		'percent_id': self.percent_id,
+		'virus_length': self.virus_length,
+		'contig_length': self.contig_length,
+		'alignment_length': self.alignment_length,
+		'evalue': self.evalue,
+		'bitscore': self.bitscore,
+		'fold_cov': self.fold_cov,
+		'classification': self.classification,
+		'description': self.description,
+		'virus': self.virus,
+		'adapt_id': self.adapt_id,
+		'seq': self.seq
+		}
+
+	def __repr__(self):
+		return '<BlastnFull %r>' % self.sample_name
 
 class Task(db.Model):
 	id = db.Column(db.String(36), primary_key=True)

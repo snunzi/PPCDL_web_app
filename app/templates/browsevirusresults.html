@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+
+{% block app_content %}
+<div id="main" class="container">
+    <h2>Virus Runs</h2>
+    <p></p><p>
+    <form method="POST">
+    <table id="data" class="table table-striped">
+      <thead>
+        <tr>
+          <th>Run</th>
+          <th>Sample</th>
+          <th>Accession</th>
+          <th>TI</th>
+          <th>Reads</th>
+          <th>BP Covered</th>
+          <th>Coverage</th>
+          <th>Classification</th>
+          <th>Adapt ID</th>
+          <th>Description</th>
+          <th>Virus</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+  {{super()}}
+  <script>
+    $(document).ready(function () {
+      $('#data').DataTable({
+        ajax: "{{ url_for('main.virusdata', username=current_user.username, host=host) }}",
+        serverSide: true,
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excel',
+                text: 'Export to Excel',
+                exportOptions: {
+                    modifier: {
+                        page: 'current'
+                    }
+                }
+            }
+        ],
+        columns: [
+          {data: 'run_name'},
+          {data: 'sample_name'},
+          {data: 'acc', orderable: false},
+          {data: 'ti', orderable: false},
+          {data: 'reads', orderable: false},
+          {data: 'bp_covered', orderable: false},
+          {data: 'coverage'},
+          {data: 'classification', orderable: false},
+          {data: 'adapt_id', orderable: false},
+          {data: 'description', orderable: false},
+          {data: 'virus', orderable: false}
+        ],
+          order: [[ 1, 'desc' ]]
+      });
+    });
+  </script>
+{% endblock %}

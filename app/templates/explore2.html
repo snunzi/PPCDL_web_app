@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+
+{% block app_content %}
+<body>
+  <h1>Choose an Analysis Pipeline</h1>
+  <div class="row">
+        <div class="col-md-4">
+    <form method="POST" action="" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+      {{ wtf.form_errors(form, hiddens="only") }}
+
+      {{ form.pipeline.label }}</br>
+      {{ form.pipeline(onchange="enterExt()") }}
+      <div id="virus_results" style="display: none;">
+        {{ form.virus_results.label }}</br>
+        {{ form.virus_results }}
+      </div>
+      {{ form.host.label }}</br>
+      {{ form.host }}</br>
+      <input type="submit" id="form_submit" value="Submit" >
+    </form>
+
+    <script>
+    function enterExt() {
+      let box_value = document.getElementById("pipeline").value;
+      if (box_value === "virus_id") {
+        document.getElementById("virus_results").style.display = "block";
+      } else {
+        document.getElementById("virus_results").style.display = "none";
+      }
+    }
+    enterExt()
+    </script>
+  </div>
+</body>
+{% endblock %}

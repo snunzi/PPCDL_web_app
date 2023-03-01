@@ -3,7 +3,7 @@
 
 {% block app_content %}
 <div id="main" class="container">
-    <h2>Runs</h2>
+    <h2>{{ current_user.username }}'s Runs</h2>
     <p></p><p>
     <h4><a href="{{ url_for('main.run', username=current_user.username) }}"> + Add New Run </a></h4>
     <form method="POST">
@@ -16,7 +16,7 @@
           <th>Date</th>
           <th>QC</th>
           <th>Analysis</th>
-          <th>Samples</th>
+          <th>Files</th>
           <th>Options</th>
         </tr>
       </thead>
@@ -51,7 +51,7 @@
             "targets": -2,
             "data": data[1],
             "render": function (data, type, row, meta) {
-              let url = "{{ url_for('main.runsamples', username=current_user.username, runname='DATA') }}".replace('DATA', data);
+              let url = "{{ url_for('main.runfiles', username=current_user.username, runname='DATA') }}".replace('DATA', data);
               return '<a href="' + url + '">'+'View'+'</a>';
             }
           },
@@ -67,7 +67,7 @@
             "data": data[1],
             "render": function (data, type, row, meta) {
               let durl = "{{ url_for('main.rundelete', username=current_user.username, runname='DATA') }}".replace('DATA', data);
-              return '<a class="btn btn-info btn-sm" onclick="return DeleteFunction()" href="' + durl  + '">' + 'Delete'+'</a><a class="btn btn-info btn-sm" onclick="return DeleteFunction()" href="' + durl  + '">' + 'Edit'+'</a>';
+              return '<a class="btn btn-info btn-sm" onclick="return DeleteFunction()" href="' + durl  + '">' + 'Delete'+'</a>';
             }
           },
           {

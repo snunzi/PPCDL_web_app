@@ -15,7 +15,7 @@
           <th>Date</th>
           <th>QC</th>
           <th>Analysis</th>
-          <th>Samples</th>
+          <th>Files</th>
         </tr>
       </thead>
       <tbody>
@@ -48,7 +48,7 @@
             "targets": -1,
             "data": data[1],
             "render": function (data, type, row, meta) {
-              let url = "{{ url_for('main.runsamples', username=current_user.username, runname='DATA') }}".replace('DATA', data);
+              let url = "{{ url_for('main.runfiles', username=current_user.username, runname='DATA') }}".replace('DATA', data);
               return '<a href="' + url + '">'+'View'+'</a>';
             }
           },

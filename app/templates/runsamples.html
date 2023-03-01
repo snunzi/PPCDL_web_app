@@ -2,14 +2,12 @@
 
 {% block app_content %}
 <div id="main" class="container">
-    <h2>Samples</h2>
+    <h2>Enter Host for Each Sample</h2>
     <table id="data" class="table table-striped">
       <thead>
       <tr>
         <th>Sample</th>
         <th>Host</th>
-        <th>Analysis</th>
-        <th></th>
        </tr>
        </thead>
       <tbody>
@@ -17,12 +15,13 @@
           <tr>
             <td>{{ sample.sample_id }}</td>
             <td data-name="host" class="host" data-type="select" data-pk="{{sample.id}}">{{sample.host}}</td>
-            <td><{{ Placeholder }}</td>
-            <td><</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
+    <form method="GET" action="{{ url_for('main.viruspipe', username=current_user.username, run=runname) }}">
+      <input type="submit" value="Submit">
+    </form>
 </div>
 
 {% endblock %}
@@ -34,9 +33,7 @@
       var dataTable = $('#data').DataTable({
          columns: [
            null,
-           { className: "edit_cell" },
-           {orderable: false},
-           {orderable: false}],
+           { className: "edit_cell" }],
          });
       $.fn.editable.defaults.mode = 'inline';
       $('#data').editable({

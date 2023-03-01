@@ -14,24 +14,34 @@
       {{ form.hidden_tag() }}
       {{ wtf.form_errors(form, hiddens="only") }}
 
-      {{ wtf.form_field(form.run_type) }}
       {{ wtf.form_field(form.run_id) }}
-      {{ wtf.form_field(form.share) }}
-      {{ wtf.form_field(form.seq_platform) }}
-      {{ wtf.form_field(form.PE_SE) }}
-      {{ form.extension.label }}</br>
-      {{ form.extension(onchange="enterExt()") }}
-      <div id="extension_R1_user" style="display: none;">
-        {{ form.extension_R1_user.label }}</br>
+      {{ wtf.form_field(form.run_type) }}
+
+      {{ form.platform.label }}</br>
+      {{ form.platform(onchange="enterRunInfo()") }}
+      <div id="PE_SE" style="display: none;">
+        {{ form.PE_SE.label }}</br>
+        {{ form.PE_SE }}
+
+        {{ form.extension.label }}</br>
+        {{ form.extension(onchange="enterExt()") }}
+        <div id="extension_R1_user" style="display: none;">
+          {{ form.extension_R1_user.label }}</br>
+          {{ form.extension_R1_user }}
+        </div>
+        <div id="extension_R2_user" style="display: none;">
+          {{ form.extension_R2_user.label }}</br>
+          {{ form.extension_R2_user }}
+        </div>
+      </div>
+      <div id="extension_R1" style="display: none;">
+        <label> Read extension (ie. .fastq.gz): </label>
         {{ form.extension_R1_user }}
       </div>
-      <div id="extension_R2_user" style="display: none;">
-        {{ form.extension_R2_user.label }}</br>
-        {{ form.extension_R2_user }}
-      </div>
+
+      {{ wtf.form_field(form.share) }}
       {{ wtf.form_field(form.Description) }}
-      {{ wtf.form_field(form.reads) }}
-      <input type="submit" id="form_submit" value="Submit" onclick="loading();">
+      <input type="submit" id="form_submit" value="Submit" >
       <div id="loading" style="display: none;"><img src="/static/img/Spinner-2.gif" alt="Be patient..." /></div>
     </form>
 
@@ -48,6 +58,21 @@
     }
     enterExt()
     </script>
+
+    <script>
+    function enterRunInfo() {
+      let box_value = document.getElementById("platform").value;
+      if (box_value === "illumina") {
+        document.getElementById("PE_SE").style.display = "block";
+        document.getElementById("extension_R1").style.display = "none"
+      } else {
+        document.getElementById("PE_SE").style.display = "none";
+        document.getElementById("extension_R1").style.display = "block"
+      }
+    }
+    enterRunInfo()
+    </script>
+
   </div>
 </body>
 {% endblock %}

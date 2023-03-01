@@ -33,8 +33,10 @@ def is_lane(x,y):
 def output_bash(groups):
 	for i in groups:
 		command = "cat "+" ".join(groups[i]) + " > "+define_fastq_label(i)
-		print(command)
 		os.system(command)
+		for f in groups[i]:
+			if os.path.isfile(f):
+				os.remove(f)
 
 def merge_fastq(file):
 	groups = {}
