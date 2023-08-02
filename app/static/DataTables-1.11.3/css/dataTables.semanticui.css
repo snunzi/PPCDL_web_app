@@ -104,7 +104,7 @@ table.dataTable.table thead td.sorting_desc:after {
   top: 12px;
   right: 8px;
   display: block;
-  font-family: Icons;
+  font-family: Icons, sans-serif;
 }
 table.dataTable.table thead th.sorting:after,
 table.dataTable.table thead td.sorting:after {

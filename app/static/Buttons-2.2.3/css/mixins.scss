@@ -8,7 +8,7 @@
 }
 
 @mixin dtb-two-stop-gradient($fromColor, $toColor) {
-	background-color: $toColor; /* Fallback */
+	background: $toColor; /* Fallback */
 	background: linear-gradient(to bottom, $fromColor 0%, $toColor 100%);
 	filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,StartColorStr='#{nth( $fromColor, 1 )}', EndColorStr='#{nth( $toColor, 1 )}');
 }

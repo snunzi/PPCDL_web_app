@@ -131,15 +131,3 @@ def snake_hlb(snakefile,path,run):
 			session=db.session,
 			table=BlastnFull,
 			initializer=blastnfull_init_func)
-
-
-def example(user_id,snakefile,path):
-	try:
-		user = User.query.get(user_id)
-		_set_task_progress(0)
-		snake_hlb(snakefile,path)
-		_set_task_progress(100)
-		print('Task completed')
-	except:
-		_set_task_progress(100)
-		app.logger.error('Unhandled exception', exc_info=sys.exc_info())
