@@ -11,6 +11,7 @@ from flask_bootstrap import Bootstrap
 import flask_excel as excel
 from redis import Redis
 import rq
+from flask_wtf.csrf import CSRFProtect, generate_csrf, validate_csrf
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -19,9 +20,11 @@ login.login_view = 'auth.login'
 login.login_message = ('Please log in to access this page.')
 bootstrap = Bootstrap()
 sess = Session()
+csrf = CSRFProtect()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
+    csrf.init_app(app)
     app.config.from_object(config_class)
 
     db.init_app(app)

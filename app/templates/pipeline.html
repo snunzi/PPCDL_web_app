@@ -5,7 +5,16 @@
     <h1>Choose an Analysis Pipeline</h1>
     <div class="row">
         <div class="col-md-4">
-            {{ wtf.quick_form(form) }}
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                {{ form.csrf_token }}
+
+
+                {{ form.pipeline.label }}</br>
+                {{ form.pipeline }}</br>
+                <input type="submit" id="form_submit" value="Submit" >
+              </form>
+
         </div>
     </div>
 {% endblock %}
